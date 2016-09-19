@@ -27,71 +27,71 @@ import UIKit
     var image: UIImage? { get }
     var thumbnailImage: UIImage? { get }
     
-    func loadImageWithCompletionHandler(completion: (image: UIImage?, error: NSError?) -> ())
-    func loadThumbnailImageWithCompletionHandler(completion: (image: UIImage?, error: NSError?) -> ())
+    func loadImageWithCompletionHandler(_ completion: @escaping (_ image: UIImage?, _ error: NSError?) -> ())
+    func loadThumbnailImageWithCompletionHandler(_ completion: @escaping (_ image: UIImage?, _ error: NSError?) -> ())
     
     var attributedTitle: NSAttributedString? { get }
 }
 
-public class INSPhoto: INSPhotoViewable, Equatable {
-    @objc public var image: UIImage?
-    @objc public var thumbnailImage: UIImage?
+open class INSPhoto: INSPhotoViewable, Equatable {
+    @objc open var image: UIImage?
+    @objc open var thumbnailImage: UIImage?
     
-    var imageURL: NSURL?
-    var thumbnailImageURL: NSURL?
+    var imageURL: URL?
+    var thumbnailImageURL: URL?
     
-    @objc public var attributedTitle: NSAttributedString?
+    @objc open var attributedTitle: NSAttributedString?
     
     public init(image: UIImage?, thumbnailImage: UIImage?) {
         self.image = image
         self.thumbnailImage = thumbnailImage
     }
     
-    public init(imageURL: NSURL?, thumbnailImageURL: NSURL?) {
+    public init(imageURL: URL?, thumbnailImageURL: URL?) {
         self.imageURL = imageURL
         self.thumbnailImageURL = thumbnailImageURL
     }
     
-    public init (imageURL: NSURL?, thumbnailImage: UIImage) {
+    public init (imageURL: URL?, thumbnailImage: UIImage) {
         self.imageURL = imageURL
         self.thumbnailImage = thumbnailImage
     }
     
-    @objc public func loadImageWithCompletionHandler(completion: (image: UIImage?, error: NSError?) -> ()) {
+    public func loadImageWithCompletionHandler(_ completion: @escaping (_ image: UIImage?, _ error: NSError?) -> ()) {
         if let image = image {
-            completion(image: image, error: nil)
+            completion(image, nil)
             return
         }
         loadImageWithURL(imageURL, completion: completion)
     }
-    @objc public func loadThumbnailImageWithCompletionHandler(completion: (image: UIImage?, error: NSError?) -> ()) {
+    public func loadThumbnailImageWithCompletionHandler(_ completion: @escaping (_ image: UIImage?, _ error: NSError?) -> ()) {
         if let thumbnailImage = thumbnailImage {
-            completion(image: thumbnailImage, error: nil)
+            completion(thumbnailImage, nil)
             return
         }
         loadImageWithURL(thumbnailImageURL, completion: completion)
     }
     
-    public func loadImageWithURL(url: NSURL?, completion: (image: UIImage?, error: NSError?) -> ()) {
-        let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
+    open func loadImageWithURL(_ url: URL?, completion: @escaping (_ image: UIImage?, _ error: NSError?) -> ()) {
+        let session = URLSession(configuration: URLSessionConfiguration.default)
         
         if let imageURL = url {
-            session.dataTaskWithURL(imageURL, completionHandler: { (response: NSData?, data: NSURLResponse?, error: NSError?) in
+            session.dataTask(with: imageURL, completionHandler: { (response: Data?, data: URLResponse?, error: NSError?) in
                 
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
                     if error != nil {
-                        completion(image: nil, error: error)
+                        completion(nil, error)
                     } else if let response = response, let image = UIImage(data: response) {
-                        completion(image: image, error: nil)
+                        completion(image, nil)
                     } else {
-                        completion(image: nil, error: NSError(domain: "INSPhotoDomain", code: -1, userInfo: [ NSLocalizedDescriptionKey: "Couldn't load image"]))
+                        completion(nil, NSError(domain: "INSPhotoDomain", code: -1, userInfo: [ NSLocalizedDescriptionKey: "Couldn't load image"]))
                     }
                     session.finishTasksAndInvalidate()
                 })
                 
-            }).resume()
+            } as! (Data?, URLResponse?, Error?) -> Void).resume()
         } else {
-            completion(image: nil, error: NSError(domain: "INSPhotoDomain", code: -2, userInfo: [ NSLocalizedDescriptionKey: "Image URL not found."]))
+            completion(nil, NSError(domain: "INSPhotoDomain", code: -2, userInfo: [ NSLocalizedDescriptionKey: "Image URL not found."]))
         }
     }
 }

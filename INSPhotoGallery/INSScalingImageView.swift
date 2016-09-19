@@ -18,6 +18,17 @@
 //  limitations under the License.
 
 import UIKit
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
 
 class INSScalingImageView: UIScrollView {
     lazy var imageView: UIImageView = {
@@ -51,12 +62,12 @@ class INSScalingImageView: UIScrollView {
         updateZoomScale()
     }
     
-    override func didAddSubview(subview: UIView) {
+    override func didAddSubview(_ subview: UIView) {
         super.didAddSubview(subview)
         centerScrollViewContents()
     }
     
-    private func setupImageScrollView() {
+    fileprivate func setupImageScrollView() {
         showsVerticalScrollIndicator = false
         showsHorizontalScrollIndicator = false;
         bouncesZoom = true;
@@ -71,8 +82,8 @@ class INSScalingImageView: UIScrollView {
             horizontalInset = (bounds.width - contentSize.width) * 0.5;
         }
         
-        if (self.contentSize.height < CGRectGetHeight(bounds)) {
-            verticalInset = (CGRectGetHeight(bounds) - contentSize.height) * 0.5;
+        if (self.contentSize.height < bounds.height) {
+            verticalInset = (bounds.height - contentSize.height) * 0.5;
         }
         
         if (window?.screen.scale < 2.0) {
@@ -84,10 +95,10 @@ class INSScalingImageView: UIScrollView {
         self.contentInset = UIEdgeInsetsMake(verticalInset, horizontalInset, verticalInset, horizontalInset);
     }
     
-    private func updateImage(image: UIImage?) {
+    fileprivate func updateImage(_ image: UIImage?) {
         let size = image?.size ?? CGSize.zero
         
-        imageView.transform = CGAffineTransformIdentity
+        imageView.transform = CGAffineTransform.identity
         imageView.image = image
         imageView.frame = CGRect(origin: CGPoint.zero, size: size)
         self.contentSize = size
@@ -96,7 +107,7 @@ class INSScalingImageView: UIScrollView {
         centerScrollViewContents()
     }
     
-    private func updateZoomScale() {
+    fileprivate func updateZoomScale() {
         if let image = imageView.image {
             let scrollViewFrame = self.bounds
             let scaleWidth = scrollViewFrame.size.width / image.size.width
@@ -114,7 +125,7 @@ class INSScalingImageView: UIScrollView {
             //
             // This is enabled in scrollViewWillBeginZooming so panning while zoomed-in
             // is unaffected.
-            self.panGestureRecognizer.enabled = false
+            self.panGestureRecognizer.isEnabled = false
         }
     }
 }
